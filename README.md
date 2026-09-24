@@ -4,7 +4,7 @@ Projeto de Processamento de Linguagem Natural (PLN) e Machine Learning desenvolv
 
 ---
 
-## 📁 Estrutura do Repositório
+## Estrutura do Repositório
 
 ```text
 identificador-de-fake-news/
@@ -20,7 +20,7 @@ identificador-de-fake-news/
 ├── .gitignore
 └── README.md
 
-## 🛠️ Tecnologias Utilizadas
+##  Tecnologias Utilizadas
 Python 3.10+
 
 Pandas (Tratamento e manipulação de dados)
