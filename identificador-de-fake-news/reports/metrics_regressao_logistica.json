@@ -1,0 +1,19 @@
+{
+    "notebook": 2,
+    "modelo": "Regressão Logística",
+    "dataset_split": {
+        "amostras_treino": 9521,
+        "amostras_teste": 2381,
+        "total_registros": 11902,
+        "dimensao_matriz_treino": "(9521, 5000)",
+        "dimensao_matriz_teste": "(2381, 5000)"
+    },
+    "metrics": {
+        "acuracia": 0.9588,
+        "f1_score": 0.9588,
+        "mse": 0.0412,
+        "vocab_size": 5000,
+        "taxa_cobertura": 1.0,
+        "similaridade_cosseno_media": 0.0179
+    }
+}
