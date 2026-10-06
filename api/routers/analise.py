@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from api.schemas import AnalyzeRequest, AnalyzeResponse
-from api.deps import get_session
+from api.deps import get_db
 from api.db.models import NoticiaCache
 from scraper.extractor import extract_news, ExtractionError
 from ml.inference import engine
@@ -12,7 +12,7 @@ from ml.inference import engine
 router = APIRouter(tags=["Análise"])
 
 @router.post("/analisar-url", response_model=AnalyzeResponse)
-async def analisar_url(request: AnalyzeRequest, session: AsyncSession = Depends(get_session)):
+async def analisar_url(request: AnalyzeRequest, session: AsyncSession = Depends(get_db)):
     url_str = str(request.url)
     
     # 1. Verificar cache no BD
