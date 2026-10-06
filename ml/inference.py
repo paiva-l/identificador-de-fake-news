@@ -1,56 +1,82 @@
+import os
 import logging
+import joblib
+import numpy as np
 from transformers import pipeline
 
 logger = logging.getLogger(__name__)
 
 class NLPEngine:
     def __init__(self):
-        self.classifier = None
-        # Para este MVP rápido e leve, utilizaremos um modelo zero-shot multilingue.
-        self.model_name = "MoritzLaurer/mDeBERTa-v3-base-mnli-xnli"
+        # Modelo 1: HuggingFace (Análise de Viés e Nuances)
+        self.hf_classifier = None
+        self.hf_model_name = "MoritzLaurer/mDeBERTa-v3-base-mnli-xnli"
+        
+        # Modelo 2: LinearSVC (Detecção FakeNews Factual Treinado no BR)
+        self.svc_model = None
+        self.tfidf_vectorizer = None
 
     def load_model(self):
         """
-        Carrega o modelo na memória. 
-        Este método deve ser chamado apenas uma vez, no evento `lifespan` do FastAPI.
+        Carrega os modelos na memória. Deve ser chamado no lifespan do FastAPI.
         """
-        logger.info(f"Carregando pesos do modelo NLP ({self.model_name})...")
-        self.classifier = pipeline(
+        logger.info(f"Carregando pesos do modelo HuggingFace ({self.hf_model_name})...")
+        self.hf_classifier = pipeline(
             "zero-shot-classification",
-            model=self.model_name
+            model=self.hf_model_name
         )
-        logger.info("Modelo NLP carregado e pronto para inferência.")
+        
+        logger.info("Carregando LinearSVC + TF-IDF original (Dataset BR)...")
+        # Caminho relativo baseado na raiz do projeto
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        svc_path = os.path.join(base_dir, "models", "best_linearsvc_model.joblib")
+        tfidf_path = os.path.join(base_dir, "models", "tfidf_vectorizer.pkl")
+        
+        try:
+            self.svc_model = joblib.load(svc_path)
+            self.tfidf_vectorizer = joblib.load(tfidf_path)
+            logger.info("LinearSVC carregado com sucesso.")
+        except Exception as e:
+            logger.error(f"Aviso: Não foi possível carregar o LinearSVC. A IA principal assume tudo. Erro: {e}")
+
+        logger.info("Motor Híbrido NLP pronto para inferência.")
 
     def predict(self, text: str) -> dict:
         """
-        Realiza a inferência em um texto limpo, gerando o score de probabilidade
-        e a classificação de viés/opinião.
+        Realiza a inferência usando Ensemble.
+        LinearSVC: Calcula probabilidade matemática de ser Falso.
+        HuggingFace: Extrai a característica de viés / sensacionalismo.
         """
-        if not self.classifier:
-            raise RuntimeError("O modelo de ML não foi carregado. Chame load_model() primeiro.")
+        if not self.hf_classifier:
+            raise RuntimeError("O motor Híbrido não foi inicializado. Chame load_model() primeiro.")
 
-        # Truncamento de segurança para não estourar a memória RAM no MVP
-        text_cut = text[:1500]
+        # --- AVALIAÇÃO 1: FAKE NEWS (LinearSVC) ---
+        prob_fake = None
+        if self.svc_model is not None:
+            # O .joblib original já é um Pipeline (TF-IDF + SVC), enviamos texto direto
+            try:
+                margin = float(self.svc_model.decision_function([text])[0])
+                prob_fake = float(1 / (1 + np.exp(-margin)))
+            except Exception as e:
+                logger.error(f"Erro na inferência do SVC: {e}")
+            
+        # Fallback caso o modelo tradicional não tenha sido encontrado
+        if prob_fake is None:
+            text_cut = text[:1500]
+            rel_labels = ["notícia verdadeira, fato", "mentira, falso, boato"]
+            rel_result = self.hf_classifier(text_cut, rel_labels, multi_label=False)
+            prob_fake = rel_result["scores"][0] if rel_result["labels"][0] == "mentira, falso, boato" else 1.0 - rel_result["scores"][0]
 
-        # 1. Determina se é fato jornalístico genuíno ou mentira/boato (Confiança/Fake)
-        rel_labels = ["notícia verdadeira, fato", "mentira, falso, boato"]
-        rel_result = self.classifier(text_cut, rel_labels, multi_label=False)
-        
-        prob_fake = 0.0
-        if rel_result["labels"][0] == "mentira, falso, boato":
-            prob_fake = rel_result["scores"][0]
-        else:
-            prob_fake = 1.0 - rel_result["scores"][0]
-
-        # 2. Avalia o viés / câmara de eco (imparcial vs sensacionalista)
+        # --- AVALIAÇÃO 2: VIÉS INFORMATIVO (Hugging Face) ---
+        text_cut = text[:1500] # Limite de RAM da GPU/CPU pro BERT
         bias_labels = ["neutro, imparcial, informativo", "opinativo, enviesado, sensacionalista"]
-        bias_result = self.classifier(text_cut, bias_labels, multi_label=False)
+        bias_result = self.hf_classifier(text_cut, bias_labels, multi_label=False)
         
         return {
             "prob_fake": round(prob_fake, 4),
-            "bias_label": bias_result["labels"][0].split(',')[0],  # Pega o termo principal (ex: "neutro")
+            "bias_label": bias_result["labels"][0].split(',')[0],
             "bias_score": round(bias_result["scores"][0], 4),
-            "modelo": self.model_name
+            "modelos_usados": ["LinearSVC (BR)", "mDeBERTa-v3 (Zero-Shot)"]
         }
 
 # Instância Singleton do motor
