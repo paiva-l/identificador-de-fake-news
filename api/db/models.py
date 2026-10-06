@@ -14,6 +14,9 @@ class NoticiaCache(Base):
     conteudo = Column(Text, nullable=True)
     # A probabilidade de ser Fake News calculada pelo motor de ML
     score_ml = Column(Float, nullable=True)
+    # Resultados do modelo de viés (Hugging Face)
+    bias_label = Column(String, nullable=True)
+    bias_score = Column(Float, nullable=True)
     # Registro de quando a URL foi extraída e classificada
     data_processamento = Column(DateTime, default=datetime.datetime.utcnow)
 
