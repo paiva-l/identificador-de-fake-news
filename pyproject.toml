@@ -20,6 +20,8 @@ trafilatura = ">=2.0"
 httpx = "^0.28.1"
 alembic = "^1.20.0"
 asyncpg = "^0.31.0"
+torch = "^2.14.1"
+transformers = "^5.19.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.0"
