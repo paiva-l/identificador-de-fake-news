@@ -21,10 +21,12 @@ async def analisar_url(request: AnalyzeRequest, session: AsyncSession = Depends(
     noticia_db = result.scalars().first()
     
     if noticia_db:
+        prob = noticia_db.score_ml or 0.0
         return AnalyzeResponse(
             url=noticia_db.url,
             titulo=noticia_db.titulo,
-            prob_fake=noticia_db.score_ml or 0.0,
+            prob_fake=prob,
+            taxa_confiabilidade=round((1.0 - prob) * 100, 2),
             bias_label=noticia_db.bias_label,
             bias_score=noticia_db.bias_score,
             modelos_usados=["Cache DB"]
@@ -61,10 +63,12 @@ async def analisar_url(request: AnalyzeRequest, session: AsyncSession = Depends(
     await session.refresh(nova_noticia)
 
     # 5. Retornar resposta
+    prob = prediction["prob_fake"]
     return AnalyzeResponse(
         url=nova_noticia.url,
         titulo=nova_noticia.titulo,
-        prob_fake=prediction["prob_fake"],
+        prob_fake=prob,
+        taxa_confiabilidade=round((1.0 - prob) * 100, 2),
         bias_label=prediction["bias_label"],
         bias_score=prediction["bias_score"],
         modelos_usados=prediction["modelos_usados"]
