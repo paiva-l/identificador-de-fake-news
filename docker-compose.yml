@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: fakenews_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin_password
+      POSTGRES_DB: fakenews
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d fakenews"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fakenews_api
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://admin:admin_password@db:5432/fakenews
+      - HF_HOME=/app/.cache/huggingface
+    volumes:
+      - ./models:/app/models
+    # Entrypoint para rodar migrações do banco e iniciar o servidor
+    command: >
+      bash -c "alembic upgrade head && uvicorn api.main:app --host 0.0.0.0 --port 8000"
+
+volumes:
+  postgres_data:
