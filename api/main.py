@@ -28,11 +28,11 @@ from fastapi.responses import HTMLResponse
 async def mock_fake():
     html = """
     <html>
-      <head><title>URGENTE: Chá de alho cura o vírus</title></head>
+      <head><title>O papa Francisco foi preso após 80 acusações de tráfico</title></head>
       <body>
         <article>
-          <h1>Urgente: Descoberta a cura!</h1>
-          <p>ATENÇÃO! Repassem para todos os seus grupos! Um médico revelou que tomar água quente com limão mata o vírus em 24 horas. A mídia tradicional não quer que você saiba disso porque a indústria farmacêutica vai perder bilhões! O diretor do hospital já confirmou a informação em um áudio vazado no WhatsApp. Compartilhe antes que apaguem!</p>
+          <h1>Boato – Ocorreu um apagão no Vaticano</h1>
+          <p>O papa Francisco foi preso após 80 acusações de tráfico de crianças e diversas fraudes. Por isso que o pontífice está ausente. Apagão vaticano papar presar acusação tráfico criança e fraude. O papar francisco tuitou manhã o curador beaver confirmar o papar francisco equipar rede social agendar publicação e planejada antecedência clicar tweet o tweetdeck agendar o publicação. O fbi o interrogatório fontes oficiais militar policiar italiano e unidade crime sexual o casar papar vaticano prender e policiar alto e colocar prisão.</p>
         </article>
       </body>
     </html>
