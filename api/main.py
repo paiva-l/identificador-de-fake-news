@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from ml.inference import engine
+from api.routers import analise
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -15,6 +16,8 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+app.include_router(analise.router)
+
 @app.get("/health", tags=["health"])
 async def health() -> dict:
-    return {"status": "ok", "ml_ready": engine.classifier is not None}
+    return {"status": "ok", "ml_ready": engine.hf_classifier is not None}
