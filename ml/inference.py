@@ -26,16 +26,14 @@ class NLPEngine:
             model=self.hf_model_name
         )
         
-        logger.info("Carregando LinearSVC + TF-IDF original (Dataset BR)...")
+        logger.info("Carregando LinearSVC + TF-IDF Calibrado (Dataset BR)...")
         # Caminho relativo baseado na raiz do projeto
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        svc_path = os.path.join(base_dir, "models", "best_linearsvc_model.joblib")
-        tfidf_path = os.path.join(base_dir, "models", "tfidf_vectorizer.pkl")
+        svc_path = os.path.join(base_dir, "models", "calibrated_pipeline.joblib")
         
         try:
             self.svc_model = joblib.load(svc_path)
-            self.tfidf_vectorizer = joblib.load(tfidf_path)
-            logger.info("LinearSVC carregado com sucesso.")
+            logger.info("LinearSVC Calibrado carregado com sucesso.")
         except Exception as e:
             logger.error(f"Aviso: Não foi possível carregar o LinearSVC. A IA principal assume tudo. Erro: {e}")
 
@@ -50,13 +48,13 @@ class NLPEngine:
         if not self.hf_classifier:
             raise RuntimeError("O motor Híbrido não foi inicializado. Chame load_model() primeiro.")
 
-        # --- AVALIAÇÃO 1: FAKE NEWS (LinearSVC) ---
+        # --- AVALIAÇÃO 1: FAKE NEWS (LinearSVC Calibrado) ---
         prob_fake = None
         if self.svc_model is not None:
-            # O .joblib original já é um Pipeline (TF-IDF + SVC), enviamos texto direto
             try:
-                margin = float(self.svc_model.decision_function([text])[0])
-                prob_fake = float(1 / (1 + np.exp(-margin)))
+                # O CalibratedClassifierCV suporta predict_proba. classes_ = [0, 1] onde 0 é Fake e 1 é Real
+                probs = self.svc_model.predict_proba([text])[0]
+                prob_fake = float(probs[0])
             except Exception as e:
                 logger.error(f"Erro na inferência do SVC: {e}")
             
