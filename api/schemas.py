@@ -11,4 +11,5 @@ class AnalyzeResponse(BaseModel):
     taxa_confiabilidade: float
     bias_label: Optional[str]
     bias_score: Optional[float]
+    explicacao_xai: Optional[str] = None
     modelos_usados: Optional[List[str]] = None

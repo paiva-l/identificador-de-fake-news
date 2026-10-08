@@ -3,6 +3,8 @@ import logging
 import joblib
 import numpy as np
 from transformers import pipeline
+from ml.xai import ExplainabilityEngine
+from ml.preprocessing import limpar_texto
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +17,9 @@ class NLPEngine:
         # Modelo 2: LinearSVC (Detecção FakeNews Factual Treinado no BR)
         self.svc_model = None
         self.tfidf_vectorizer = None
+        
+        # Motor XAI
+        self.xai_engine = None
 
     def load_model(self):
         """
@@ -33,6 +38,7 @@ class NLPEngine:
         
         try:
             self.svc_model = joblib.load(svc_path)
+            self.xai_engine = ExplainabilityEngine(self.svc_model)
             logger.info("LinearSVC Calibrado carregado com sucesso.")
         except Exception as e:
             logger.error(f"Aviso: Não foi possível carregar o LinearSVC. A IA principal assume tudo. Erro: {e}")
@@ -48,13 +54,21 @@ class NLPEngine:
         if not self.hf_classifier:
             raise RuntimeError("O motor Híbrido não foi inicializado. Chame load_model() primeiro.")
 
+        # Limpeza avançada (usada no treino) exclusivamente para o modelo linear
+        texto_limpo = limpar_texto(text)
+
         # --- AVALIAÇÃO 1: FAKE NEWS (LinearSVC Calibrado) ---
         prob_fake = None
+        explicacao = "Explicabilidade indisponível."
         if self.svc_model is not None:
             try:
                 # O CalibratedClassifierCV suporta predict_proba. classes_ = [0, 1] onde 0 é Fake e 1 é Real
-                probs = self.svc_model.predict_proba([text])[0]
+                probs = self.svc_model.predict_proba([texto_limpo])[0]
                 prob_fake = float(probs[0])
+                
+                # Chamando o motor XAI para gerar o template baseado na probabilidade
+                if self.xai_engine:
+                    explicacao = self.xai_engine.explain(texto_limpo, prob_fake)
             except Exception as e:
                 logger.error(f"Erro na inferência do SVC: {e}")
             
@@ -74,6 +88,7 @@ class NLPEngine:
             "prob_fake": round(prob_fake, 4),
             "bias_label": bias_result["labels"][0].split(',')[0],
             "bias_score": round(bias_result["scores"][0], 4),
+            "explicacao_xai": explicacao,
             "modelos_usados": ["LinearSVC (BR)", "mDeBERTa-v3 (Zero-Shot)"]
         }
 

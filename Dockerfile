@@ -42,8 +42,9 @@ ENV PYTHONUNBUFFERED=1 \
 # Criar diretório para cache do HuggingFace
 RUN mkdir -p /app/.cache/huggingface
 
-# Pré-baixar os pesos do HuggingFace (mDeBERTa) para o cache da imagem no momento do build
+# Pré-baixar os pesos do HuggingFace (mDeBERTa) e NLTK stopwords para evitar Cold Start
 RUN python -c "from transformers import pipeline; pipeline('zero-shot-classification', model='MoritzLaurer/mDeBERTa-v3-base-mnli-xnli')"
+RUN python -c "import nltk; nltk.download('stopwords', download_dir='/usr/local/share/nltk_data')"
 
 # Copiar o código da aplicação
 COPY . .

@@ -29,6 +29,7 @@ async def analisar_url(request: AnalyzeRequest, session: AsyncSession = Depends(
             taxa_confiabilidade=round((1.0 - prob) * 100, 2),
             bias_label=noticia_db.bias_label,
             bias_score=noticia_db.bias_score,
+            explicacao_xai=noticia_db.explicacao_xai,
             modelos_usados=["Cache DB"]
         )
 
@@ -55,7 +56,8 @@ async def analisar_url(request: AnalyzeRequest, session: AsyncSession = Depends(
         conteudo=extracted_data["clean_content"],
         score_ml=prediction["prob_fake"],
         bias_label=prediction["bias_label"],
-        bias_score=prediction["bias_score"]
+        bias_score=prediction["bias_score"],
+        explicacao_xai=prediction["explicacao_xai"]
     )
     
     session.add(nova_noticia)
@@ -71,5 +73,6 @@ async def analisar_url(request: AnalyzeRequest, session: AsyncSession = Depends(
         taxa_confiabilidade=round((1.0 - prob) * 100, 2),
         bias_label=prediction["bias_label"],
         bias_score=prediction["bias_score"],
+        explicacao_xai=prediction["explicacao_xai"],
         modelos_usados=prediction["modelos_usados"]
     )

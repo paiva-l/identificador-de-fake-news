@@ -25,6 +25,7 @@ transformers = "^5.19.0"
 scikit-learn = "^1.9.1"
 joblib = "^1.6.0"
 numpy = "^1.26.0"
+nltk = "^3.10.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.0"

@@ -17,6 +17,8 @@ class NoticiaCache(Base):
     # Resultados do modelo de viés (Hugging Face)
     bias_label = Column(String, nullable=True)
     bias_score = Column(Float, nullable=True)
+    # Explicabilidade gerada pelo motor XAI
+    explicacao_xai = Column(Text, nullable=True)
     # Registro de quando a URL foi extraída e classificada
     data_processamento = Column(DateTime, default=datetime.datetime.utcnow)
 
