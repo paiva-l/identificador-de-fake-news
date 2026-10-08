@@ -45,7 +45,7 @@ class NLPEngine:
 
         logger.info("Motor Híbrido NLP pronto para inferência.")
 
-    def predict(self, text: str) -> dict:
+    def predict(self, text: str, url: str = "") -> dict:
         """
         Realiza a inferência usando Ensemble.
         LinearSVC: Calcula probabilidade matemática de ser Falso.
@@ -57,33 +57,34 @@ class NLPEngine:
         # Limpeza avançada (usada no treino) exclusivamente para o modelo linear
         texto_limpo = limpar_texto(text)
 
-        # --- AVALIAÇÃO 1: FAKE NEWS (LinearSVC Calibrado) ---
+        # --- AVALIAÇÃO 1: VIÉS INFORMATIVO (Hugging Face) ---
+        text_cut = text[:1500] # Limite de RAM da GPU/CPU pro BERT
+        bias_labels = ["neutro, imparcial, informativo", "opinativo, enviesado, sensacionalista"]
+        bias_result = self.hf_classifier(text_cut, bias_labels, multi_label=False)
+        
+        bias_label_short = "NEUTRAL" if "neutro" in bias_result["labels"][0] else "BIASED"
+
+        # --- AVALIAÇÃO 2: FAKE NEWS (LinearSVC Calibrado) ---
         prob_fake = None
-        explicacao = "Explicabilidade indisponível."
+        explicacao = None
         if self.svc_model is not None:
             try:
                 # O CalibratedClassifierCV suporta predict_proba. classes_ = [0, 1] onde 0 é Fake e 1 é Real
                 probs = self.svc_model.predict_proba([texto_limpo])[0]
                 prob_fake = float(probs[0])
                 
-                # Chamando o motor XAI para gerar o template baseado na probabilidade
+                # Chamando o motor XAI para gerar o dicionário exato para o Front-end
                 if self.xai_engine:
-                    explicacao = self.xai_engine.explain(texto_limpo, prob_fake)
+                    explicacao = self.xai_engine.explain(texto_limpo, url, prob_fake, bias_label_short)
             except Exception as e:
                 logger.error(f"Erro na inferência do SVC: {e}")
             
         # Fallback caso o modelo tradicional não tenha sido encontrado
         if prob_fake is None:
-            text_cut = text[:1500]
             rel_labels = ["notícia verdadeira, fato", "mentira, falso, boato"]
             rel_result = self.hf_classifier(text_cut, rel_labels, multi_label=False)
             prob_fake = rel_result["scores"][0] if rel_result["labels"][0] == "mentira, falso, boato" else 1.0 - rel_result["scores"][0]
 
-        # --- AVALIAÇÃO 2: VIÉS INFORMATIVO (Hugging Face) ---
-        text_cut = text[:1500] # Limite de RAM da GPU/CPU pro BERT
-        bias_labels = ["neutro, imparcial, informativo", "opinativo, enviesado, sensacionalista"]
-        bias_result = self.hf_classifier(text_cut, bias_labels, multi_label=False)
-        
         return {
             "prob_fake": round(prob_fake, 4),
             "bias_label": bias_result["labels"][0].split(',')[0],
