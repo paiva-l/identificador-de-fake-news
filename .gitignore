@@ -10,4 +10,4 @@ env/
 
 # Ignorar pastas do VS Code / sistema
 .vscode/
-.DS_Store
+.DS_Store*.db
