@@ -12,3 +12,5 @@ env/
 .vscode/
 .DS_Store*.db
 /data
+fake_news_local.db
+mlflow.db
