@@ -33,10 +33,10 @@ O objetivo desta fase é eliminar as inconsistências entre o laboratório (Note
 
 Nesta etapa, o projeto se desprende da dependência de grandes arquivos locais (`.joblib`, `.csv`) e adota ferramentas de rastreabilidade de Machine Learning.
 
-- [ ] **2.1. Versionamento de Dados (DVC)**
+- [x] **2.1. Versionamento de Dados (DVC)**
   - **Ação:** Adicionar o **Data Version Control (DVC)** ao projeto. Arquivos como o `FakeRecogna.xlsx` e `fake_recogna_limpo.csv` deixarão de poluir o repositório Git, sendo versionados em buckets S3 ou Google Cloud Storage, enquanto o Git rastreia apenas os "ponteiros" `.dvc`.
 
-- [ ] **2.2. Implementação do Model Registry (MLflow / W&B)**
+- [x] **2.2. Implementação do Model Registry (MLflow / W&B)**
   - **Ação:** Acoplar o **MLflow** ou o **Weights & Biases** aos scripts de treino (`notebooks/v2_pipeline_linearsvc/app.py`).
   - **Resultado:** Cada experimento de IA registrará métricas (F1-Score, Acurácia) em um servidor centralizado. A API da aplicação será alterada para *puxar* o último modelo marcado como "Production", eliminando a necessidade de substituição manual do `.joblib`.
 
@@ -46,16 +46,17 @@ Nesta etapa, o projeto se desprende da dependência de grandes arquivos locais (
 
 Com a governança pronta, o projeto focará em monitorar o modelo operando no mundo real e criar gatilhos para que a IA aprenda continuamente.
 
-- [ ] **3.1. Dashboards de Data Drift / Concept Drift**
+- [x] **3.1. Dashboards de Data Drift / Concept Drift**
   - **Problema:** A linguagem usada para criar desinformação evolui constantemente. Modelos estáticos envelhecem e perdem eficácia (*Data Drift*).
   - **Ação:** Usar ferramentas como **Evidently AI** para comparar o vetor semântico das notícias que estão chegando na API hoje com as notícias que treinaram o modelo meses atrás. Se houver desvio estatístico superior a 15%, emitir um alerta técnico no Slack/Email.
 
-- [ ] **3.2. Volante de Dados (Feedback Loop) Automático**
+- [x] **3.2. Volante de Dados (Feedback Loop) Automático**
   - **Ação:** Ativar as funcionalidades atreladas à tabela `VotoComunidade` existente no banco.
   - **Fluxo:** 
     1. A comunidade marca se a avaliação da máquina foi útil ou falhou.
     2. Registros conflitantes (Modelo diz Falso, Comunidade diz Verdadeiro) entram numa fila humana de revisão.
     3. As URLs validadas tornam-se novas linhas no dataset oficial.
 
-- [ ] **3.3. Pipeline de Retreinamento Contínuo (CT - Continuous Training)**
+- [x] **3.3. Pipeline de Retreinamento Contínuo (CT - Continuous Training)**
   - **Ação:** Criar uma rotina (CRON) semanal ou mensal onde um contêiner baixa o dataset mais atual (passo 2.1), roda o script de MLflow (passo 2.2), limpa os dados (passo 1.1) e faz o re-treino total. Se as métricas do modelo novo superarem o modelo antigo, o deploy é automatizado em produção.
+
