@@ -1,13 +1,27 @@
-# Ignorar arquivos temporários e caches do Python
 .cache/
 __pycache__/
-*.pyc
-
-# Ignorar ambientes virtuais
+*.py[cod]
 .venv/
 venv/
 env/
-
-# Ignorar pastas do VS Code / sistema
 .vscode/
 .DS_Store
+.ipynb_checkpoints/
+*.tmp
+.env
+.env.*
+!.env.example
+*.pkl
+*.joblib
+/fake_recogna_limpo.csv
+/data/processed/
+/data/audit/
+/data/fakerecogna_extrativo.csv
+/data/fake_recogna_limpo_raiz.csv
+/data/fake_recogna_limpo_v1.csv
+/notebooks/**/data/
+/notebooks/**/fake_recogna_limpo.csv
+/notebooks/**/outputs_notebook1/
+/reports/*
+!/reports/relatorio_tecnico.md
+!/reports/relatorio_tecnico_modelo_v1_v2_v3.md

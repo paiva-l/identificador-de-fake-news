@@ -1,0 +1,15 @@
+# Dependências para retreinamento; bundles históricos podem exigir versões próprias.
+numpy>=2.0,<3
+pandas>=2.2,<4
+scipy>=1.13,<2
+scikit-learn>=1.6,<2
+joblib>=1.4,<2
+matplotlib>=3.9,<4
+seaborn>=0.13,<0.14
+openpyxl>=3.1,<4
+nltk>=3.9,<4
+requests>=2.32,<3
+trafilatura>=2.0,<3
+ipython>=8,<10
+ipykernel>=6,<8
+jupyterlab>=4,<5
